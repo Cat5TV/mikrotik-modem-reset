@@ -1,0 +1,49 @@
+# Modem Reset via USB Relay - Version 1.0
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# Tests Google, Twitter and facebook web sites
+# If all 3 fail two times in a row, reset the modem
+# Ideally set for 5 minute schedule, which means if
+# Internet is down for 10 minutes, modem will be
+# restarted automatically.
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:log info ("Checking Internet Connection.")
+
+# Test with google.com
+:global googlefail
+:local googlelastresp $googlefail
+:do {
+  :global googlefail false;
+  :local google [ :put [ :resolve "google.com" ]];
+} on-error={
+  :global googlefail true;
+};
+
+# Test with twitter.com
+:global twitterfail
+:local twitterlastresp $twitterfail
+:do {
+  :global twitterfail false;
+  :local twitter [ :put [ :resolve "twitter.com" ]];
+} on-error={
+  :global twitterfail true;
+};
+
+
+# Test with facebook.com
+:global facebookfail
+:local facebooklastresp $facebookfail
+:do {
+  :global facebookfail false;
+  :local facebook [ :put [ :resolve "facebook.com" ]];
+} on-error={
+  :global facebookfail true;
+};
+
+# Do our magic
+:if ( $googlelastresp=true and $googlefail=true and $twitterlastresp=true and $twitterfail=true and $facebooklastresp=true and $facebookfail=true ) do={
+  :log info ("Internet is down. Resetting modem.")
+  /system routerboard usb power-reset duration=30s
+} else {
+  :log info ("Internet is up.")
+}
